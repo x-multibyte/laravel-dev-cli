@@ -1,0 +1,70 @@
+<?php
+
+namespace LaravelDev\Console\Commands;
+
+use LaravelDev\Services\PresetService;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+
+#[AsCommand(
+    name: 'preset:list',
+    description: 'List all available presets'
+)]
+class PresetListCommand extends Command
+{
+    protected function configure(): void
+    {
+        $this
+            ->addOption('category', 'c', InputOption::VALUE_OPTIONAL, 'Filter by category')
+            ->addOption('laravel', 'l', InputOption::VALUE_OPTIONAL, 'Filter by Laravel version')
+            ->addOption('json', null, InputOption::VALUE_NONE, 'Output as JSON');
+    }
+    
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $service = new PresetService();
+        
+        $presets = $service->list(
+            category: $input->getOption('category'),
+            laravel: $input->getOption('laravel')
+        );
+        
+        if ($input->getOption('json')) {
+            $data = array_map(fn($p) => [
+                'name' => $p->name,
+                'version' => $p->version,
+                'description' => $p->description,
+                'category' => $p->getCategory(),
+                'laravel' => $p->laravel,
+            ], $presets);
+            
+            $output->writeln(json_encode($data, JSON_PRETTY_PRINT));
+            return Command::SUCCESS;
+        }
+        
+        if (empty($presets)) {
+            $output->writeln('<comment>No presets found.</comment>');
+            $output->writeln('<comment>Run `laravel-dev preset:sync` to download presets.</comment>');
+            return Command::SUCCESS;
+        }
+        
+        $table = new Table($output);
+        $table->setHeaders(['Name', 'Description', 'Laravel']);
+        
+        foreach ($presets as $preset) {
+            $table->addRow([
+                $preset->name,
+                $preset->description,
+                $preset->laravel,
+            ]);
+        }
+        
+        $table->render();
+        
+        return Command::SUCCESS;
+    }
+}

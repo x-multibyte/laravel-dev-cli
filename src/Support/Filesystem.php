@@ -1,0 +1,64 @@
+<?php
+
+namespace LaravelDev\Support;
+
+use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
+
+class Filesystem
+{
+    private SymfonyFilesystem $fs;
+    
+    public function __construct()
+    {
+        $this->fs = new SymfonyFilesystem();
+    }
+    
+    public function ensureDirectoryExists(string $path): void
+    {
+        if (!$this->fs->exists($path)) {
+            $this->fs->mkdir($path, 0755);
+        }
+    }
+    
+    public function expandHomePath(string $path): string
+    {
+        if (str_starts_with($path, '~/')) {
+            $home = $_SERVER['HOME'] ?? getenv('HOME');
+            
+            if ($home === null || $home === false || $home === '') {
+                throw new \RuntimeException('HOME environment variable is not set. Cannot expand home path.');
+            }
+            
+            return $home . substr($path, 1);
+        }
+        
+        return $path;
+    }
+    
+    public function write(string $path, string $content): void
+    {
+        $this->fs->dumpFile($path, $content);
+    }
+    
+    public function read(string $path): string
+    {
+        return file_get_contents($path);
+    }
+    
+    public function exists(string $path): bool
+    {
+        return $this->fs->exists($path);
+    }
+    
+    public function deleteDirectory(string $path): void
+    {
+        if ($this->fs->exists($path)) {
+            $this->fs->remove($path);
+        }
+    }
+    
+    public function copyDirectory(string $source, string $destination): void
+    {
+        $this->fs->mirror($source, $destination);
+    }
+}
