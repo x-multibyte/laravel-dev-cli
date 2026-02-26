@@ -15,7 +15,7 @@ class HttpClient
             'timeout' => 30,
             'headers' => [
                 'Accept' => 'application/json',
-                'User-Agent' => 'laravel-dev-cli/1.0.0',
+                'User-Agent' => 'laravel-dev-cli/1.0.3',
             ],
         ], $config));
     }
