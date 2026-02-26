@@ -4,6 +4,7 @@ namespace LaravelDev\Services;
 
 use LaravelDev\Domain\AIPlatform;
 use LaravelDev\Support\Filesystem;
+use LaravelDev\Support\HttpClient;
 
 class SkillInstaller
 {
@@ -12,13 +13,15 @@ class SkillInstaller
     
     private string $globalPath;
     private Filesystem $fs;
+    private HttpClient $httpClient;
     
-    public function __construct(?string $globalPath = null)
+    public function __construct(?string $globalPath = null, ?HttpClient $httpClient = null)
     {
         $this->fs = new Filesystem();
         $this->globalPath = $this->fs->expandHomePath(
             $globalPath ?? '~/.laravel-dev'
         );
+        $this->httpClient = $httpClient ?? new HttpClient();
     }
     
     public function ensureGlobalPresets(): void
@@ -47,7 +50,69 @@ class SkillInstaller
         return $this->globalPath . '/skill';
     }
     
-    public function install(AIPlatform $platform, string $projectPath, bool $force = false): array
+    private function downloadSkillFiles(): string
+    {
+        $skillPath = $this->getGlobalSkillPath();
+        $tempDir = sys_get_temp_dir() . '/laravel-dev-skill-' . uniqid();
+        
+        try {
+            // Create temporary directory for download
+            $this->fs->ensureDirectoryExists($tempDir);
+            
+            // Download the repository as a ZIP archive
+            $zipUrl = "https://github.com/" . self::SKILL_REPO . "/archive/refs/heads/main.zip";
+            $zipPath = $tempDir . '/skill.zip';
+            
+            $this->httpClient->download($zipUrl, $zipPath);
+            
+            // Extract the ZIP file
+            $extractPath = $tempDir . '/extracted';
+            $this->fs->ensureDirectoryExists($extractPath);
+            
+            $zip = new \ZipArchive();
+            if ($zip->open($zipPath) === true) {
+                $zip->extractTo($extractPath);
+                $zip->close();
+                
+                // Find the extracted directory (it will have the repo name)
+                $extractedDir = null;
+                $items = array_diff(scandir($extractPath), ['.', '..']);
+                if (!empty($items)) {
+                    $firstItem = reset($items);
+                    $extractedDir = $extractPath . '/' . $firstItem;
+                    
+                    if (is_dir($extractedDir)) {
+                        // Copy the extracted files to the global skill path
+                        $this->fs->ensureDirectoryExists($skillPath);
+                        $this->fs->copyDirectory($extractedDir, $skillPath);
+                        
+                        // Clean up temporary directory
+                        $this->fs->deleteDirectory($tempDir);
+                        
+                        return $skillPath;
+                    } else {
+                        throw new \RuntimeException("Extracted item is not a directory: {$extractedDir}");
+                    }
+                } else {
+                    throw new \RuntimeException("No items found in extracted directory: {$extractPath}");
+                }
+            } else {
+                throw new \RuntimeException("Could not open downloaded ZIP file: {$zipPath}");
+            }
+        } catch (\Exception $e) {
+            // Clean up on error
+            $this->fs->deleteDirectory($tempDir);
+            throw $e;
+        }
+    }
+    
+    // Public method for testing purposes
+    public function testDownloadSkillFiles(): string
+    {
+        return $this->downloadSkillFiles();
+    }
+    
+    public function install(AIPlatform $platform, string $projectPath, bool $force = false, bool $offline = false): array
     {
         // Ensure global directories exist
         $this->ensureGlobalPresets();
@@ -62,6 +127,35 @@ class SkillInstaller
         
         // Create target directory
         $this->fs->ensureDirectoryExists($targetPath);
+        
+        // If not in offline mode, download and copy skill files
+        if (!$offline) {
+            // Try to get skill files from global cache, download if not available
+            $globalSkillPath = $this->getGlobalSkillPath();
+            $files = glob($globalSkillPath . '/*');
+            if (!$this->fs->exists($globalSkillPath) || $files === false || count($files) === 0) {
+                $this->downloadSkillFiles();
+            }
+            
+            // Copy skill files from global cache to target location
+            if ($this->fs->exists($globalSkillPath)) {
+                $scanned = scandir($globalSkillPath);
+                if ($scanned === false) {
+                    throw new \RuntimeException("Failed to scan directory: {$globalSkillPath}");
+                }
+                $items = array_diff($scanned, ['.', '..']);
+                foreach ($items as $item) {
+                    $source = $globalSkillPath . '/' . $item;
+                    $destination = $targetPath . '/' . $item;
+                    
+                    if (is_dir($source)) {
+                        $this->fs->copyDirectory($source, $destination);
+                    } else {
+                        $this->fs->write($destination, $this->fs->read($source));
+                    }
+                }
+            }
+        }
         
         // Return installed path
         return [$targetPath];

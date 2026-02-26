@@ -73,14 +73,15 @@ class SkillCommand extends Command
         
         try {
             $force = $input->getOption('force');
+            $offline = $input->getOption('offline');
             
             if ($platform === AIPlatform::ALL) {
                 $platforms = $detector->getSupportedPlatforms();
                 foreach ($platforms as $p) {
-                    $installer->install($p, $projectPath, $force);
+                    $installer->install($p, $projectPath, $force, $offline);
                 }
             } else {
-                $installer->install($platform, $projectPath, $force);
+                $installer->install($platform, $projectPath, $force, $offline);
             }
             
             $output->writeln('');
