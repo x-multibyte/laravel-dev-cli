@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Unit\Services;
+namespace XMultibyte\LaravelDev\Tests\Unit\Services;
 
-use LaravelDev\Domain\AIPlatform;
-use LaravelDev\Services\AIDetector;
+use XMultibyte\LaravelDev\Domain\AIPlatform;
+use XMultibyte\LaravelDev\Services\AIDetector;
 use PHPUnit\Framework\TestCase;
 
 class AIDetectorTest extends TestCase

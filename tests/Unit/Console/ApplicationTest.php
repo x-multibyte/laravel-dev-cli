@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit\Console;
+namespace XMultibyte\LaravelDev\Tests\Unit\Console;
 
-use LaravelDev\Console\Application;
+use XMultibyte\LaravelDev\Console\Application;
 use PHPUnit\Framework\TestCase;
 
 class ApplicationTest extends TestCase

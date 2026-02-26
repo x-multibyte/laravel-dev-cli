@@ -1,9 +1,9 @@
 <?php
 
-namespace LaravelDev\Console\Commands;
+namespace XMultibyte\LaravelDev\Console\Commands;
 
-use LaravelDev\Domain\AIPlatform;
-use LaravelDev\Services\PresetService;
+use XMultibyte\LaravelDev\Domain\AIPlatform;
+use XMultibyte\LaravelDev\Services\PresetService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

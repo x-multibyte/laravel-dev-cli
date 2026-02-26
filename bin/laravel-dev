@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-use LaravelDev\Console\Application;
+use XMultibyte\LaravelDev\Console\Application;
 
 if (isset($GLOBALS['_composer_autoload_path'])) {
     define('LARAVEL_DEV_COMPOSER_INSTALL', $GLOBALS['_composer_autoload_path']);

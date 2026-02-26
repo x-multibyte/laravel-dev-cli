@@ -1,11 +1,11 @@
 <?php
 
-namespace LaravelDev\Console;
+namespace XMultibyte\LaravelDev\Console;
 
-use LaravelDev\Console\Commands\DocsCommand;
-use LaravelDev\Console\Commands\NewCommand;
-use LaravelDev\Console\Commands\PresetListCommand;
-use LaravelDev\Console\Commands\SkillCommand;
+use XMultibyte\LaravelDev\Console\Commands\DocsCommand;
+use XMultibyte\LaravelDev\Console\Commands\NewCommand;
+use XMultibyte\LaravelDev\Console\Commands\PresetListCommand;
+use XMultibyte\LaravelDev\Console\Commands\SkillCommand;
 use Symfony\Component\Console\Application as BaseApplication;
 
 class Application extends BaseApplication

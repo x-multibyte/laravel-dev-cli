@@ -1,10 +1,10 @@
 <?php
 
-namespace LaravelDev\Services;
+namespace XMultibyte\LaravelDev\Services;
 
-use LaravelDev\Domain\AIPlatform;
-use LaravelDev\Support\Filesystem;
-use LaravelDev\Support\HttpClient;
+use XMultibyte\LaravelDev\Domain\AIPlatform;
+use XMultibyte\LaravelDev\Support\Filesystem;
+use XMultibyte\LaravelDev\Support\HttpClient;
 
 class SkillInstaller
 {

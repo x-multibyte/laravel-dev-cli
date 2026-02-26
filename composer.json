@@ -22,12 +22,12 @@
   },
   "autoload": {
     "psr-4": {
-      "LaravelDev\\": "src/"
+      "XMultibyte\\LaravelDev\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Tests\\": "tests/"
+      "XMultibyte\\LaravelDev\\Tests\\": "tests/"
     }
   },
   "bin": [
@@ -39,14 +39,5 @@
       "pestphp/pest-plugin": true
     }
   },
-  "minimum-stability": "stable",
-  "repositories": [
-    {
-      "type": "path",
-      "url": "/Users/roy/x-multibyte/laravel-dev-preset",
-      "options": {
-        "symlink": true
-      }
-    }
-  ]
+  "minimum-stability": "stable"
 }

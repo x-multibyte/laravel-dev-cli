@@ -1,6 +1,6 @@
 <?php
 
-namespace LaravelDev\Domain;
+namespace XMultibyte\LaravelDev\Domain;
 
 enum AIPlatform: string
 {

@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit\Support;
+namespace XMultibyte\LaravelDev\Tests\Unit\Support;
 
-use LaravelDev\Support\HttpClient;
+use XMultibyte\LaravelDev\Support\HttpClient;
 use PHPUnit\Framework\TestCase;
 
 class HttpClientTest extends TestCase

@@ -1,6 +1,6 @@
 <?php
 
-namespace LaravelDev\Support;
+namespace XMultibyte\LaravelDev\Support;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;

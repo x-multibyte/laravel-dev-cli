@@ -1,8 +1,8 @@
 <?php
 
-namespace LaravelDev\Services;
+namespace XMultibyte\LaravelDev\Services;
 
-use LaravelDev\Domain\AIPlatform;
+use XMultibyte\LaravelDev\Domain\AIPlatform;
 
 class AIDetector
 {

@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Unit\Services;
+namespace XMultibyte\LaravelDev\Tests\Unit\Services;
 
-use LaravelDev\Domain\AIPlatform;
-use LaravelDev\Services\SkillInstaller;
+use XMultibyte\LaravelDev\Domain\AIPlatform;
+use XMultibyte\LaravelDev\Services\SkillInstaller;
 use PHPUnit\Framework\TestCase;
 
 class SkillInstallerTest extends TestCase

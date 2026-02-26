@@ -1,6 +1,6 @@
 <?php
 
-namespace LaravelDev\Domain;
+namespace XMultibyte\LaravelDev\Domain;
 
 final class LaravelVersion
 {

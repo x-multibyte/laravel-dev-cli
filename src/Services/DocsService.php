@@ -1,8 +1,8 @@
 <?php
 
-namespace LaravelDev\Services;
+namespace XMultibyte\LaravelDev\Services;
 
-use LaravelDev\Support\Filesystem;
+use XMultibyte\LaravelDev\Support\Filesystem;
 
 class DocsService
 {

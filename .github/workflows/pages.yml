@@ -34,6 +34,9 @@ jobs:
       - name: Build
         run: cd pages && npm run build
 
+      - name: Copy CNAME file
+        run: cp pages/CNAME pages/.vitepress/dist/CNAME
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

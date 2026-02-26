@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit\Domain;
+namespace XMultibyte\LaravelDev\Tests\Unit\Domain;
 
-use LaravelDev\Domain\LaravelVersion;
+use XMultibyte\LaravelDev\Domain\LaravelVersion;
 use PHPUnit\Framework\TestCase;
 
 class LaravelVersionTest extends TestCase

@@ -4,11 +4,9 @@ export default defineConfig({
   title: 'Laravel Dev CLI',
   description: 'CLI tool for Laravel development with AI Agent integration',
   lang: 'en-US',
-  base: '/laravel-dev-cli/',
+  base: '/',
 
-  head: [
-    ['link', { rel: 'icon', href: '/logo.png' }]
-  ],
+  head: [],
 
   themeConfig: {
     nav: [

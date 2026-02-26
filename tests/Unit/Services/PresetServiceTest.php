@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit\Services;
+namespace XMultibyte\LaravelDev\Tests\Unit\Services;
 
-use LaravelDev\Services\PresetService;
+use XMultibyte\LaravelDev\Services\PresetService;
 use PHPUnit\Framework\TestCase;
 
 class PresetServiceTest extends TestCase

@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit\Support;
+namespace XMultibyte\LaravelDev\Tests\Unit\Support;
 
-use LaravelDev\Support\Filesystem;
+use XMultibyte\LaravelDev\Support\Filesystem;
 use PHPUnit\Framework\TestCase;
 
 class FilesystemTest extends TestCase

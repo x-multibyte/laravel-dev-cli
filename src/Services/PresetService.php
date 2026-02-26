@@ -1,9 +1,9 @@
 <?php
 
-namespace LaravelDev\Services;
+namespace XMultibyte\LaravelDev\Services;
 
-use LaravelDev\Domain\Preset;
-use LaravelDev\Support\Filesystem;
+use XMultibyte\LaravelDev\Domain\Preset;
+use XMultibyte\LaravelDev\Support\Filesystem;
 
 class PresetService
 {

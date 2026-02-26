@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit\Domain;
+namespace XMultibyte\LaravelDev\Tests\Unit\Domain;
 
-use LaravelDev\Domain\AIPlatform;
+use XMultibyte\LaravelDev\Domain\AIPlatform;
 use PHPUnit\Framework\TestCase;
 
 class AIPlatformTest extends TestCase

@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit\Domain;
+namespace XMultibyte\LaravelDev\Tests\Unit\Domain;
 
-use LaravelDev\Domain\Preset;
+use XMultibyte\LaravelDev\Domain\Preset;
 use PHPUnit\Framework\TestCase;
 
 class PresetTest extends TestCase
