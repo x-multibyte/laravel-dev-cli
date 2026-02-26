@@ -12,7 +12,7 @@ class Application extends BaseApplication
 {
     public function __construct()
     {
-        parent::__construct('laravel-dev', '1.0.0');
+        parent::__construct('laravel-dev', '1.0.2');
         
         $this->registerCommands();
     }
