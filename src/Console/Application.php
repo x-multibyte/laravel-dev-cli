@@ -33,7 +33,7 @@ BANNER;
     
     public function getHelp(): string
     {
-        return self::BANNER . parent::getHelp();
+        return self::BANNER . "  <info>https://laravel-dev.xmultibyte.com</info>\n\n" . parent::getHelp();
     }
     
     private function registerCommands(): void
