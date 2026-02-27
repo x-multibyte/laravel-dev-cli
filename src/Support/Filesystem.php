@@ -63,6 +63,23 @@ class Filesystem
     
     public function copyDirectory(string $source, string $destination): void
     {
-        $this->fs->mirror($source, $destination);
+        $this->fs->mirror($source, $destination, null, [
+            'override' => true,
+            'copy_on_windows' => true,
+            'delete' => false,
+        ]);
+    }
+    
+    public function copyFile(string $source, string $destination): void
+    {
+        if (!copy($source, $destination)) {
+            throw new \RuntimeException("Failed to copy file from {$source} to {$destination}");
+        }
+        
+        // Preserve file permissions
+        $perms = fileperms($source);
+        if ($perms !== false) {
+            chmod($destination, $perms);
+        }
     }
 }

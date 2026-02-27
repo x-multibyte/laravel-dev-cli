@@ -86,6 +86,9 @@ class SkillInstaller
                         $this->fs->ensureDirectoryExists($skillPath);
                         $this->fs->copyDirectory($extractedDir, $skillPath);
                         
+                        // Set executable permissions for script files
+                        $this->setScriptPermissions($skillPath);
+                        
                         // Clean up temporary directory
                         $this->fs->deleteDirectory($tempDir);
                         
@@ -110,6 +113,24 @@ class SkillInstaller
     public function testDownloadSkillFiles(): string
     {
         return $this->downloadSkillFiles();
+    }
+    
+    private function setScriptPermissions(string $skillPath): void
+    {
+        $scriptsPath = $skillPath . '/scripts';
+        if (!is_dir($scriptsPath)) {
+            return;
+        }
+        
+        // Set executable permissions for shell scripts
+        foreach (glob($scriptsPath . '/*.sh') as $scriptFile) {
+            chmod($scriptFile, 0755);
+        }
+        
+        // Set executable permissions for Python scripts
+        foreach (glob($scriptsPath . '/*.py') as $scriptFile) {
+            chmod($scriptFile, 0755);
+        }
     }
     
     public function install(AIPlatform $platform, string $projectPath, bool $force = false, bool $offline = false): array
@@ -151,7 +172,7 @@ class SkillInstaller
                     if (is_dir($source)) {
                         $this->fs->copyDirectory($source, $destination);
                     } else {
-                        $this->fs->write($destination, $this->fs->read($source));
+                        $this->fs->copyFile($source, $destination);
                     }
                 }
             }
