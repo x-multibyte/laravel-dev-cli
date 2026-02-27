@@ -13,11 +13,27 @@ use Symfony\Component\Console\Application as BaseApplication;
 
 class Application extends BaseApplication
 {
+    private const BANNER = <<<'BANNER'
+ _                                           _         ______                
+(_)                                         | |       (______)               
+ _        _____   ____  _____  _   _  _____ | | _____  _     _  _____  _   _ 
+| |      (____ | / ___)(____ || | | || ___ || |(_____)| |   | || ___ || | | |
+| |_____ / ___ || |    / ___ | \ V / | ____|| |       | |__/ / | ____| \ V / 
+|_______)\_____||_|    \_____|  \_/  |_____) \_)      |_____/  |_____)  \_/  
+
+
+BANNER;
+    
     public function __construct()
     {
-        parent::__construct('laravel-dev', '1.0.5');
+        parent::__construct('laravel-dev', 'v1.1.0');
         
         $this->registerCommands();
+    }
+    
+    public function getHelp(): string
+    {
+        return self::BANNER . parent::getHelp();
     }
     
     private function registerCommands(): void
