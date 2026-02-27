@@ -15,7 +15,7 @@ class Application extends BaseApplication
 {
     public function __construct()
     {
-        parent::__construct('laravel-dev', 'v1.1.0');
+        parent::__construct('laravel-dev', 'v1.1.1');
         
         $this->registerCommands();
     }
