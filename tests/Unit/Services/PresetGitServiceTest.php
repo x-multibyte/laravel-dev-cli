@@ -1,62 +1,49 @@
 <?php
 
-namespace XMultibyte\LaravelDev\Tests\Unit\Services;
-
-use PHPUnit\Framework\TestCase;
 use XMultibyte\LaravelDev\Services\PresetGitService;
 
-class PresetGitServiceTest extends TestCase
+beforeEach(function () {
+    $this->testDir = sys_get_temp_dir() . '/laravel-dev-git-test-' . uniqid();
+    mkdir($this->testDir, 0755, true);
+    $this->gitService = new PresetGitService;
+});
+
+afterEach(function () {
+    gitTestRemoveDirectory($this->testDir);
+});
+
+function gitTestRemoveDirectory(string $dir): void
 {
-    private string $testDir;
-    private PresetGitService $gitService;
-    
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->testDir = sys_get_temp_dir() . '/laravel-dev-git-test-' . uniqid();
-        mkdir($this->testDir, 0755, true);
-        $this->gitService = new PresetGitService();
+    if (!is_dir($dir)) {
+        return;
     }
-    
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-        $this->removeDirectory($this->testDir);
-    }
-    
-    private function removeDirectory(string $dir): void
-    {
-        if (!is_dir($dir)) return;
-        
-        $items = scandir($dir);
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') continue;
-            $path = $dir . '/' . $item;
-            is_dir($path) ? $this->removeDirectory($path) : unlink($path);
+
+    $items = scandir($dir);
+    foreach ($items as $item) {
+        if ($item === '.' || $item === '..') {
+            continue;
         }
-        rmdir($dir);
+        $path = $dir . '/' . $item;
+        is_dir($path) ? gitTestRemoveDirectory($path) : unlink($path);
     }
-    
-    public function test_is_git_repo_returns_false_for_non_git_dir(): void
-    {
-        $this->assertFalse($this->gitService->isGitRepo($this->testDir));
-    }
-    
-    public function test_clone_creates_git_repo(): void
-    {
-        // Use a small public repo for testing
-        $repo = 'https://github.com/octocat/Hello-World.git';
-        
-        $this->gitService->clone($repo, $this->testDir);
-        
-        $this->assertTrue($this->gitService->isGitRepo($this->testDir));
-        $this->assertFileExists($this->testDir . '/README');
-    }
-    
-    public function test_clone_throws_exception_for_invalid_repo(): void
-    {
-        $this->expectException(\RuntimeException::class);
-        
-        $this->gitService->clone('https://invalid-url-not-exist.git', $this->testDir);
-    }
+    rmdir($dir);
 }
+
+test('is git repo returns false for non git dir', function () {
+    expect($this->gitService->isGitRepo($this->testDir))->toBeFalse();
+});
+
+test('clone creates git repo', function () {
+    // Use a small public repo for testing
+    $repo = 'https://github.com/octocat/Hello-World.git';
+
+    $this->gitService->clone($repo, $this->testDir);
+
+    expect($this->gitService->isGitRepo($this->testDir))->toBeTrue();
+    expect($this->testDir . '/README')->toBeFile();
+})->skip('Network dependent test');
+
+test('clone throws exception for invalid repo', function () {
+    expect(fn () => $this->gitService->clone('https://invalid-url-not-exist.git', $this->testDir))
+        ->toThrow(RuntimeException::class);
+})->skip('Network dependent test');

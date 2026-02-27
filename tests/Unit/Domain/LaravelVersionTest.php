@@ -1,47 +1,38 @@
 <?php
 
-namespace XMultibyte\LaravelDev\Tests\Unit\Domain;
-
 use XMultibyte\LaravelDev\Domain\LaravelVersion;
-use PHPUnit\Framework\TestCase;
 
-class LaravelVersionTest extends TestCase
-{
-    public function test_parse_major_version(): void
-    {
-        $version = LaravelVersion::parse('12');
-        
-        $this->assertEquals(12, $version->major);
-        $this->assertNull($version->minor);
-    }
-    
-    public function test_parse_full_version(): void
-    {
-        $version = LaravelVersion::parse('12.1');
-        
-        $this->assertEquals(12, $version->major);
-        $this->assertEquals(1, $version->minor);
-    }
-    
-    public function test_get_docs_path(): void
-    {
-        $version = new LaravelVersion(12);
-        
-        $this->assertEquals('v12', $version->getDocsPath());
-    }
-    
-    public function test_is_supported(): void
-    {
-        $this->assertTrue(LaravelVersion::isSupported('10'));
-        $this->assertTrue(LaravelVersion::isSupported('11'));
-        $this->assertTrue(LaravelVersion::isSupported('12'));
-        $this->assertFalse(LaravelVersion::isSupported('9'));
-    }
-    
-    public function test_get_supported(): void
-    {
-        $supported = LaravelVersion::getSupported();
-        
-        $this->assertEquals(['10', '11', '12'], $supported);
-    }
-}
+test('parse major version', function () {
+    $version = LaravelVersion::parse('12');
+
+    expect($version->major)->toBe(12)
+        ->and($version->minor)->toBeNull();
+});
+
+test('parse full version', function () {
+    $version = LaravelVersion::parse('12.1');
+
+    expect($version->major)->toBe(12)
+        ->and($version->minor)->toBe(1);
+});
+
+test('get docs path', function () {
+    $version = new LaravelVersion(12);
+
+    expect($version->getDocsPath())->toBe('v12');
+});
+
+test('is supported', function (string $version, bool $expected) {
+    expect(LaravelVersion::isSupported($version))->toBe($expected);
+})->with([
+    ['10', true],
+    ['11', true],
+    ['12', true],
+    ['9', false],
+]);
+
+test('get supported', function () {
+    $supported = LaravelVersion::getSupported();
+
+    expect($supported)->toBe(['10', '11', '12']);
+});

@@ -1,34 +1,25 @@
 <?php
 
-namespace XMultibyte\LaravelDev\Tests\Unit\Domain;
-
 use XMultibyte\LaravelDev\Domain\AIPlatform;
-use PHPUnit\Framework\TestCase;
 
-class AIPlatformTest extends TestCase
-{
-    public function test_claude_has_correct_config_folder(): void
-    {
-        $this->assertEquals('.claude', AIPlatform::CLAUDE->getConfigFolder());
+test('claude has correct config folder', function () {
+    expect(AIPlatform::CLAUDE->getConfigFolder())->toBe('.claude');
+});
+
+test('claude has correct skill path', function () {
+    expect(AIPlatform::CLAUDE->getSkillPath())->toBe('skills');
+});
+
+test('all platforms have display name', function () {
+    foreach (AIPlatform::cases() as $platform) {
+        expect($platform->getDisplayName())->not->toBeEmpty();
     }
-    
-    public function test_claude_has_correct_skill_path(): void
-    {
-        $this->assertEquals('skills', AIPlatform::CLAUDE->getSkillPath());
-    }
-    
-    public function test_all_platforms_have_display_name(): void
-    {
-        foreach (AIPlatform::cases() as $platform) {
-            $this->assertNotEmpty($platform->getDisplayName());
-        }
-    }
-    
-    public function test_all_platform_returns_all_cases_except_itself(): void
-    {
-        $all = AIPlatform::all();
-        
-        $this->assertNotContains(AIPlatform::ALL, $all);
-        $this->assertContains(AIPlatform::CLAUDE, $all);
-    }
-}
+});
+
+test('all platforms returns all cases except itself', function () {
+    $all = AIPlatform::all();
+
+    expect($all)
+        ->not->toContain(AIPlatform::ALL)
+        ->toContain(AIPlatform::CLAUDE);
+});

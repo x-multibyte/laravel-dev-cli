@@ -21,7 +21,7 @@ enum AIPlatform: string
     case DROID = 'droid';
     case IFLOW = 'iflow';
     case ALL = 'all';
-    
+
     public function getConfigFolder(): string
     {
         return match ($this) {
@@ -44,7 +44,7 @@ enum AIPlatform: string
             self::ALL => '',
         };
     }
-    
+
     public function getSkillPath(): string
     {
         return match ($this) {
@@ -53,7 +53,7 @@ enum AIPlatform: string
             default => 'skills',
         };
     }
-    
+
     public function getDisplayName(): string
     {
         return match ($this) {
@@ -76,7 +76,7 @@ enum AIPlatform: string
             self::ALL => 'All AI assistants',
         };
     }
-    
+
     public static function all(): array
     {
         return array_filter(
