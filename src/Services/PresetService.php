@@ -11,11 +11,15 @@ class PresetService
     
     private string $cachePath;
     private Filesystem $fs;
+    private PresetConfig $config;
+    private PresetGitService $git;
     
     public function __construct(?string $cachePath = null)
     {
         $this->fs = new Filesystem();
         $this->cachePath = $this->fs->expandHomePath($cachePath ?? self::DEFAULT_CACHE_PATH);
+        $this->config = new PresetConfig();
+        $this->git = new PresetGitService();
     }
     
     public function list(?string $category = null, ?string $laravel = null): array
@@ -68,6 +72,30 @@ class PresetService
     public function getCachePath(): string
     {
         return $this->cachePath;
+    }
+    
+    public function isInstalled(): bool
+    {
+        return is_dir($this->cachePath) && $this->git->isGitRepo($this->cachePath);
+    }
+    
+    public function ensureUpdated(): void
+    {
+        if ($this->isInstalled()) {
+            $this->git->update(
+                $this->cachePath,
+                $this->config->get('branch')
+            );
+        } else {
+            $this->fs->ensureDirectoryExists(dirname($this->cachePath));
+            $this->git->clone(
+                $this->config->get('repository'),
+                $this->cachePath
+            );
+        }
+        
+        $this->config->set('last_updated', date('c'));
+        $this->config->save();
     }
     
     private function getCategories(): array

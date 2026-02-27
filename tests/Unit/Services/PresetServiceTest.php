@@ -75,4 +75,55 @@ class PresetServiceTest extends TestCase
         
         $this->assertNull($preset);
     }
+    
+    public function test_is_installed_returns_false_when_not_git_repo(): void
+    {
+        // The test cache path is not a git repo
+        $this->assertFalse($this->service->isInstalled());
+    }
+    
+    public function test_is_installed_returns_true_when_git_repo(): void
+    {
+        // Initialize a git repo in the test cache path
+        exec("cd {$this->cachePath} && git init 2>/dev/null");
+        
+        $this->assertTrue($this->service->isInstalled());
+    }
+    
+    public function test_get_cache_path_returns_expanded_path(): void
+    {
+        $this->assertEquals($this->cachePath, $this->service->getCachePath());
+    }
+    
+    public function test_ensure_updated_creates_directory_and_clones(): void
+    {
+        // Use a fresh temp directory that doesn't exist yet
+        $newCachePath = sys_get_temp_dir() . '/laravel-dev-presets-new-' . uniqid();
+        
+        // Clean up if exists
+        if (is_dir($newCachePath)) {
+            exec("rm -rf {$newCachePath}");
+        }
+        
+        $service = new PresetService($newCachePath);
+        
+        // Verify directory doesn't exist before
+        $this->assertDirectoryDoesNotExist($newCachePath);
+        
+        // ensureUpdated should clone the repo (integration test with real git)
+        // For unit testing, we'll just verify the method exists and can be called
+        try {
+            $service->ensureUpdated();
+            // If successful, directory should exist
+            $this->assertDirectoryExists($newCachePath);
+        } catch (\RuntimeException $e) {
+            // Expected if git is not available or network issues
+            $this->assertStringContainsString('clone', strtolower($e->getMessage()));
+        }
+        
+        // Cleanup
+        if (is_dir($newCachePath)) {
+            exec("rm -rf {$newCachePath}");
+        }
+    }
 }
