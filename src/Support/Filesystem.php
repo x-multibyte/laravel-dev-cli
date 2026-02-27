@@ -63,11 +63,51 @@ class Filesystem
     
     public function copyDirectory(string $source, string $destination): void
     {
-        $this->fs->mirror($source, $destination, null, [
-            'override' => true,
-            'copy_on_windows' => true,
-            'delete' => false,
-        ]);
+        $this->copyDirectoryRecursive($source, $destination);
+    }
+    
+    private function copyDirectoryRecursive(string $source, string $destination): void
+    {
+        if (!is_dir($source)) {
+            throw new \RuntimeException("Source is not a directory: {$source}");
+        }
+        
+        $this->ensureDirectoryExists($destination);
+        
+        $items = scandir($source);
+        if ($items === false) {
+            throw new \RuntimeException("Failed to scan directory: {$source}");
+        }
+        
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+            
+            $sourcePath = $source . '/' . $item;
+            $destPath = $destination . '/' . $item;
+            
+            if (is_link($sourcePath)) {
+                // Preserve symbolic links
+                $target = readlink($sourcePath);
+                if ($target === false) {
+                    throw new \RuntimeException("Failed to read link: {$sourcePath}");
+                }
+                // Remove existing file or link if it exists
+                if ($this->fs->exists($destPath)) {
+                    $this->fs->remove($destPath);
+                }
+                if (!symlink($target, $destPath)) {
+                    throw new \RuntimeException("Failed to create symlink: {$destPath}");
+                }
+            } elseif (is_dir($sourcePath)) {
+                // Recursively copy directories
+                $this->copyDirectoryRecursive($sourcePath, $destPath);
+            } else {
+                // Copy files preserving permissions
+                $this->copyFile($sourcePath, $destPath);
+            }
+        }
     }
     
     public function copyFile(string $source, string $destination): void

@@ -65,42 +65,43 @@ class SkillInstaller
             
             $this->httpClient->download($zipUrl, $zipPath);
             
-            // Extract the ZIP file
+            // Extract the ZIP file using unzip command to preserve symbolic links
             $extractPath = $tempDir . '/extracted';
             $this->fs->ensureDirectoryExists($extractPath);
             
-            $zip = new \ZipArchive();
-            if ($zip->open($zipPath) === true) {
-                $zip->extractTo($extractPath);
-                $zip->close();
+            $unzipCommand = "unzip -q -o " . escapeshellarg($zipPath) . " -d " . escapeshellarg($extractPath);
+            $output = [];
+            $returnCode = 0;
+            exec($unzipCommand, $output, $returnCode);
+            
+            if ($returnCode !== 0) {
+                throw new \RuntimeException("Failed to extract ZIP file: {$unzipCommand}");
+            }
+            
+            // Find the extracted directory (it will have the repo name)
+            $extractedDir = null;
+            $items = array_diff(scandir($extractPath), ['.', '..']);
+            if (!empty($items)) {
+                $firstItem = reset($items);
+                $extractedDir = $extractPath . '/' . $firstItem;
                 
-                // Find the extracted directory (it will have the repo name)
-                $extractedDir = null;
-                $items = array_diff(scandir($extractPath), ['.', '..']);
-                if (!empty($items)) {
-                    $firstItem = reset($items);
-                    $extractedDir = $extractPath . '/' . $firstItem;
+                if (is_dir($extractedDir)) {
+                    // Copy the extracted files to the global skill path
+                    $this->fs->ensureDirectoryExists($skillPath);
+                    $this->fs->copyDirectory($extractedDir, $skillPath);
                     
-                    if (is_dir($extractedDir)) {
-                        // Copy the extracted files to the global skill path
-                        $this->fs->ensureDirectoryExists($skillPath);
-                        $this->fs->copyDirectory($extractedDir, $skillPath);
-                        
-                        // Set executable permissions for script files
-                        $this->setScriptPermissions($skillPath);
-                        
-                        // Clean up temporary directory
-                        $this->fs->deleteDirectory($tempDir);
-                        
-                        return $skillPath;
-                    } else {
-                        throw new \RuntimeException("Extracted item is not a directory: {$extractedDir}");
-                    }
+                    // Set executable permissions for script files
+                    $this->setScriptPermissions($skillPath);
+                    
+                    // Clean up temporary directory
+                    $this->fs->deleteDirectory($tempDir);
+                    
+                    return $skillPath;
                 } else {
-                    throw new \RuntimeException("No items found in extracted directory: {$extractPath}");
+                    throw new \RuntimeException("Extracted item is not a directory: {$extractedDir}");
                 }
             } else {
-                throw new \RuntimeException("Could not open downloaded ZIP file: {$zipPath}");
+                throw new \RuntimeException("No items found in extracted directory: {$extractPath}");
             }
         } catch (\Exception $e) {
             // Clean up on error
