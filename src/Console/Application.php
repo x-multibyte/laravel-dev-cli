@@ -14,7 +14,7 @@ use XMultibyte\LaravelDev\Console\Commands\SkillCommand;
 class Application extends BaseApplication
 {
     public const NAME    = 'laravel-dev';
-    public const VERSION = 'v1.2.0';
+    public const VERSION = 'v1.2.1';
     
     public function __construct()
     {

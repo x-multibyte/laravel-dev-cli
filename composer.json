@@ -1,6 +1,6 @@
 {
   "name": "x-multibyte/laravel-dev-cli",
-  "version": "v1.2.0",
+  "version": "v1.2.1",
   "description": "CLI tool for Laravel development with AI Agent integration",
   "type": "library",
   "homepage": "https://laravel-dev.x-multibyte.com",
