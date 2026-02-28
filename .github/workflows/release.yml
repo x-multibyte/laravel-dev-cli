@@ -1,0 +1,168 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Manual version (e.g., 1.3.0) - leave empty for auto-detect'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip release')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current version
+        id: current
+        run: |
+          CURRENT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          CURRENT_VERSION=${CURRENT_TAG#v}
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$CURRENT_TAG" >> $GITHUB_OUTPUT
+
+      - name: Analyze commits for version bump
+        id: analyze
+        run: |
+          PREV_TAG="${{ steps.current.outputs.tag }}"
+          
+          if [ "$PREV_TAG" = "v0.0.0" ]; then
+            COMMITS=$(git log --pretty=format:"%s" --reverse)
+          else
+            COMMITS=$(git log --pretty=format:"%s" $PREV_TAG..HEAD --reverse)
+          fi
+          
+          BUMP="patch"
+          HAS_BREAKING=false
+          HAS_FEAT=false
+          
+          while IFS= read -r commit; do
+            if echo "$commit" | grep -qiE "^(feat|feature)(\(.+\))?!:"; then
+              BUMP="minor"
+              HAS_FEAT=true
+            fi
+            if echo "$commit" | grep -qiE "^(feat|feature|fix|refactor|perf)(\(.+\))?!:.*\!:" || echo "$commit" | grep -qiE "breaking change"; then
+              BUMP="major"
+              HAS_BREAKING=true
+            fi
+          done <<< "$COMMITS"
+          
+          echo "bump=$BUMP" >> $GITHUB_OUTPUT
+          echo "has_breaking=$HAS_BREAKING" >> $GITHUB_OUTPUT
+
+      - name: Calculate new version
+        id: new_version
+        run: |
+          CURRENT="${{ steps.current.outputs.version }}"
+          BUMP="${{ steps.analyze.outputs.bump }}"
+          MANUAL="${{ inputs.version }}"
+          
+          if [ -n "$MANUAL" ]; then
+            NEW_VERSION="$MANUAL"
+          else
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+            
+            case $BUMP in
+              major)
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+              minor)
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              patch)
+                PATCH=$((PATCH + 1))
+                ;;
+            esac
+            
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          fi
+          
+          # Validate format
+          if [[ ! "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Invalid version format: $NEW_VERSION"
+            exit 1
+          fi
+          
+          # Check if tag exists
+          if git tag -l | grep -q "^v${NEW_VERSION}$"; then
+            echo "Error: Tag v${NEW_VERSION} already exists"
+            exit 1
+          fi
+          
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v${NEW_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Update version in Application.php
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          sed -i "s/public const VERSION = 'v[0-9]\+\.[0-9]\+\.[0-9]\+';/public const VERSION = 'v${NEW_VERSION}';/" src/Console/Application.php
+
+      - name: Update version in composer.json
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.version }}"
+          if grep -q '"version"' composer.json; then
+            sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"v${NEW_VERSION}\"/" composer.json
+          else
+            # Add version after name
+            sed -i "s/\"name\": \"\([^\"]*\)\"/\"name\": \"\1\",\n  \"version\": \"v${NEW_VERSION}\"/" composer.json
+          fi
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/Console/Application.php composer.json
+          git commit -m "chore: bump version to v${{ steps.new_version.outputs.version }} [skip release]" || echo "No changes to commit"
+          git push origin main
+
+      - name: Create tag
+        run: |
+          git tag -a "${{ steps.new_version.outputs.tag }}" -m "Release ${{ steps.new_version.outputs.tag }}"
+          git push origin "${{ steps.new_version.outputs.tag }}"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG="${{ steps.current.outputs.tag }}"
+          
+          if [ "$PREV_TAG" = "v0.0.0" ]; then
+            echo "CHANGELOG=Initial release" >> $GITHUB_OUTPUT
+          else
+            echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+            git log --pretty=format:"- %s" $PREV_TAG..HEAD~1 | grep -v "skip release" >> $GITHUB_OUTPUT || true
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.new_version.outputs.tag }}
+          name: ${{ steps.new_version.outputs.tag }}
+          body: |
+            ## Changes
+            ${{ steps.changelog.outputs.CHANGELOG }}
+          draft: false
+          prerelease: false
+
+      - name: Summary
+        run: |
+          echo "### Release Created! 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.new_version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bump type**: ${{ steps.analyze.outputs.bump }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release URL**: https://github.com/${{ github.repository }}/releases/tag/${{ steps.new_version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
